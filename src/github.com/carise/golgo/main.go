@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+    "fmt"
+)
 
 /**
  * Game of Life:
@@ -11,20 +13,50 @@ import "fmt"
  * 4. DEAD curr_cell: == 3 live neighbors: live
  */
 
-func main() {
-    Tick()
-}
-
 type Cell struct {
     Alive bool
 }
 
-func Tick() {
-    PrintCells()
+type Grid struct {
+    Cells [][]Cell
 }
 
-func PrintCells() {
+func main() {
+    row := 10
+    col := 10
+    grid := &Grid{}
+    grid.Init(row, col)
+    grid.Tick()
+}
+
+func (grid *Grid) Init(row int, col int) {
+    cells := make([][]Cell, row)
+    for i := range cells {
+        cells[i] = make([]Cell, col)
+    }
+    grid.Cells = cells
+}
+
+func (grid Grid) Tick() {
+    grid.PrintGrid()
+}
+
+func (grid Grid) PrintGrid() {
     fmt.Printf("Print cells:\n")
+    for i := 0; i < len(grid.Cells); i++ {
+        row := grid.Cells[i]
+        for j := 0; j < len(row); j++ {
+            if row[j].Alive {
+                fmt.Printf(" x ")
+            } else {
+                fmt.Printf(" . ")
+            }
+        }
+        fmt.Printf("\n")
+    }
+}
+
+func (grid Grid) SeedGrid() {
 }
 
 func (currCell Cell) CountLiveNeighbors() int {
