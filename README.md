@@ -3,7 +3,8 @@
 A simple playground for implementing Conway's Game of Life in Go.
 
 ```bash
-go run src/github.com/carise/golgo/main.go
+$ go install github.com/carise/golgo
+$ golgo
 ```
 
 Some ideas for extending:
