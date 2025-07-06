@@ -8,5 +8,8 @@ $ golgo
 ```
 
 Some ideas for extending:
-* Use some kind of ncurses or GUI to display the automata
+* [done] Use some kind of ncurses or GUI to display the automata
 * Parallel processing of grid
+* Colors?
+* Config/flags/etc. for size
+* Random seed
