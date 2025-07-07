@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -38,12 +39,18 @@ type Grid struct {
 
 var grid *Grid
 
-const speed = 300 * time.Millisecond
-const cols = 50 // x
-const rows = 30 // y
-const initialPctAlive = 0.25
+var speed int
+var cols int
+var rows int
+var initialPctAlive float64
 
 func main() {
+	flag.IntVar(&speed, "speed", 300, "tick speed in millis")
+	flag.IntVar(&cols, "cols", 50, "width of grid")
+	flag.IntVar(&rows, "rows", 30, "height of grid")
+	flag.Float64Var(&initialPctAlive, "initialPctAlive", 0.25, "initial percentage of alive cells")
+	flag.Parse()
+
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
@@ -63,28 +70,37 @@ func main() {
 func layout(g *gocui.Gui) error {
 	xMax := (cols * 2) + 5
 	yMax := rows + 5
-	v, err := g.SetView("grid", 5, 5, xMax, yMax)
-	if err != nil && err != gocui.ErrUnknownView {
-		return err
+
+	vInit, err1 := g.SetView("initParams", 5, 2, xMax, 4)
+	if err1 != nil && err1 != gocui.ErrUnknownView {
+		return err1
 	}
-	v2, err2 := g.SetView("iterations", 5, yMax+1, xMax, yMax+3)
+
+	vGrid, err2 := g.SetView("grid", 5, 5, xMax, yMax)
 	if err2 != nil && err2 != gocui.ErrUnknownView {
 		return err2
 	}
+	
+	vIters, err3 := g.SetView("iterations", 5, yMax+1, xMax, yMax+3)
+	if err3 != nil && err3 != gocui.ErrUnknownView {
+		return err3
+	}
 
 	if grid == nil {
-		grid = &Grid{View: v}
+		fmt.Fprintf(vInit, "cols=%d, rows=%d, initialPctAlive=%f", cols, rows, initialPctAlive)
+
+		grid = &Grid{View: vGrid}
 		grid.Init(cols, rows)
 
 		// Start simulation in separate goroutine
-		go runSimulation(g, v2)
+		go runSimulation(g, vIters)
 	}
 
 	return nil
 }
 
 func runSimulation(g *gocui.Gui, iterView *gocui.View) {
-	ticker := time.NewTicker(speed)
+	ticker := time.NewTicker(time.Duration(speed) * time.Millisecond)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -115,7 +131,7 @@ func (grid *Grid) Init(cols int, rows int) {
 	}
 	grid.Size = cols * rows
 	grid.Cells = cells
-	pct_alive := int(float32(grid.Size) * initialPctAlive)
+	pct_alive := int(float64(grid.Size) * initialPctAlive)
 	for i := range grid.Cells {
 		row := grid.Cells[i]
 		for j := range row {
@@ -135,7 +151,7 @@ func (grid *Grid) printGrid() {
 	for i := range rows {
 		for j := range cols {
 			if grid.Cells[j][i].State == CellAlive {
-				fmt.Fprint(grid.View, " x")
+				fmt.Fprint(grid.View, " @")
 			} else {
 				fmt.Fprint(grid.View, " .")
 			}
